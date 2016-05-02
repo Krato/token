@@ -4,6 +4,8 @@ Manages random tokens for password resets and other one-time actions
 
 ### Installation
 
+  * Install via composer: `composer require infinety-es/token`
+
   * Add services provider to `config/app.php`:
     - `Infinety\Token\TokenServiceProvider::class,`
     - `Vinkla\Hashids\HashidsServiceProvider::class`
