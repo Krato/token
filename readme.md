@@ -8,13 +8,8 @@ Manages random tokens for password resets and other one-time actions
 
   * Add services provider to `config/app.php`:
     - `Infinety\Token\TokenServiceProvider::class,`
-    - `Vinkla\Hashids\HashidsServiceProvider::class`
-	
-  * Add facade to `config/app.php`:
-      - `'Hashids' => Vinkla\Hashids\Facades\Hashids::class`
 
   * Run `php artisan token:migration` then `php artisan migrate` to add the Token database table
-  * Run `php artisan vendor:publish`to publish vendor files
 
 ### Usage
 
