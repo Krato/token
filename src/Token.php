@@ -1,15 +1,20 @@
 <?php namespace Infinety\Token;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Infinety\Token\TokenDb;
+
 
 class Token
 {
     protected $model;
 
+    protected $key;
+
     public function __construct()
     {
         $this->model = new TokenDb;
+        $this->key = 'TokenValues';
     }
 
     public function add($ref, $type, $expires = null)
@@ -17,27 +22,21 @@ class Token
         $token = $this->model->newInstance();
         $token->type = $type;
         $token->ref = $ref;
-        $token->code = $this->uniqueCode();
+        $token->code = $this->uniqueCode($type, $ref);
         $token->expires = $expires;
         $token->save();
         return $token->code;
     }
 
-    protected function uniqueCode()
+    protected function uniqueCode($type, $ref)
     {
-        $code = str_random(40);
-        while (!is_null($this->model->whereCode($code)->first())) {
-            $code = str_random(40);
-        }
+        $mcrypt = new Crypt($this->key, 'AES-128-CBC');
+        $code = $mcrypt::encrypt($ref."-".$type);
         return $code;
     }
 
-    /**
-     * @param string $code
-     * @param string $type
-     * @return int|null
-     */
-    public function find($code, $type)
+
+    public function find($code, $type, $returnRef = true)
     {
 
         $token = $this->model->whereCode($code)->whereType($type)->first();
@@ -45,7 +44,18 @@ class Token
             return null;
         }
         $this->expire();
-        return $token->ref;
+        if($returnRef){
+            return $token->ref;
+        } else {
+            $mcrypt = new Crypt($this->key, 'AES-128-CBC');
+            $code = $mcrypt::decrypt($token->code);
+            $code = explode('-', $code);
+
+            return (object)[
+                'ref' => $code[0],
+                'type' => $code[1]
+            ];
+        }
     }
 
     protected function expire()
